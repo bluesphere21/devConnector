@@ -1,0 +1,4 @@
+{
+	"mongoURI": "mongodb+srv://bluesphere:Temp4me!!@devconnector.llean.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+	"jwtSecret": "showMeThe$$"
+}
