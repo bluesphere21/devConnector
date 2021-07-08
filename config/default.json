@@ -1,4 +1,6 @@
 {
 	"mongoURI": "mongodb+srv://bluesphere:Temp4me!!@devconnector.llean.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
-	"jwtSecret": "showMeThe$$"
+	"jwtSecret": "showMeThe$$",
+	"githubClientId": "36c31d4a6144060805fc",
+	"githubSecret": "d180378ac18743c8116989c8e05c97f09de2d1c6"
 }
