@@ -25,7 +25,7 @@ router.post('/', [auth, [
 
 			const newPost = new Post({
 				text: req.body.text,
-				name: req.body.name,
+				name: user.name,
 				avatar: user.avatar,
 				user: req.user.id
 			});
@@ -112,5 +112,129 @@ router.delete('/:id', auth, async (req, res) => {
 		}		
 	}
 );
+
+// @route 	PUT api/posts/like/:id
+// @des 	Like a post
+// @access 	Private
+router.put('/like/:id', auth, async (req, res) => {
+	try {
+		const post = await Post.findById(req.params.id);
+
+		// check if the post has already been like
+		if(post.likes.filter(like => like.user.toString() === req.user.id).length > 0){
+			return res.status(400).json({ msg: 'Post already liked' });
+		}
+
+		post.likes.unshift({ user: req.user.id });
+
+		await post.save();
+
+		res.json(post.likes);
+	} 
+	catch (err) {
+		console.log(err);
+		res.status(500).send('Server error');
+	}
+});
+
+// @route 	PUT api/posts/unlike/:id
+// @des 	Like a post
+// @access 	Private
+router.put('/unlike/:id', auth, async (req, res) => {
+	try {
+		const post = await Post.findById(req.params.id);
+		// return res.send(post.likes[0].user+' = '+req.user.id);
+		// check if the post has already been like
+		if(post.likes.filter(like => like.user.toString() === req.user.id).length === 0){
+			return res.status(400).json({ msg: 'Post has not been liked' });
+		}
+
+		// get remove index
+		const removeIndex = post.likes.map(like => like.user.toString()).indexOf(req.user.id);
+
+		post.likes.splice(removeIndex);
+
+		await post.save();
+
+		res.json(post.likes);
+	} 
+	catch (err) {
+		console.log(err);
+		res.status(500).send('Server error');
+	}
+});
+
+// @route 	POST api/posts/comment/:id
+// @des 		Comment on a post
+// @access 	Private
+router.post('/comment/:id', [auth, [
+		check('text', 'Text is required').not().isEmpty()
+	]], 
+	async (req, res) => {
+		const errors = validationResult(req);
+
+		if(!errors.isEmpty()){
+			return res.status(400).json({errors: errors.array()});
+		}
+
+		try{
+			const user = await User.findById(req.user.id).select('-password');
+			const post = await Post.findById(req.params.id);
+
+			const newComment = {
+				text: req.body.text,
+				name: user.name,
+				avatar: user.avatar,
+				user: req.user.id
+			};
+
+			post.comments.unshift(newComment);
+
+			await post.save();
+
+			res.json(post.comments);
+		}
+		catch(err){
+			console.log(err.message);
+			res.status(500).send('Server Error');
+		}
+	}
+);
+
+// @route 	DELETE api/posts/comment/:id/:comment_id
+// @des 		Delete comment
+// @access 	Private
+router.delete('/comment/:id/:comment_id', auth, async (req, res) => {
+	const errors = validationResult(req);
+	try{
+		const post = await Post.findById(req.params.id);
+
+		// pull out comment
+		const comment = await post.comments.find(comment => comment.id === req.params.comment_id);
+
+		// Make sure comment exisit
+		if(!comment){
+			return res.status(404).json({msg: 'Comment does not exists'});
+		}
+
+		// Check user
+		if(comment.user.toString() !== req.user.id){
+			return res.status(401).json({msg: 'User not autherized'});
+		}
+
+		// get remove index
+		const removeIndex = post.comments.map(comment => comment.user.toString()).indexOf(req.user.id);
+
+		post.comments.splice(removeIndex);
+
+		await post.save();
+
+		res.json(post.comments);
+	}
+	catch(err){
+		console.log(err.message);
+		res.status(500).send('Server Error');
+	}
+});
 
 module.exports = router;
