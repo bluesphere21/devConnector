@@ -12,6 +12,7 @@ const Alert = ({ alerts }) =>
   ));
 
 Alert.propTypes = {
+  // * ptar
   alerts: PropTypes.array.isRequired
 }
 
